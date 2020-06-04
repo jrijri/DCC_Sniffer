@@ -14,10 +14,18 @@
  */
 void setup()
  {
-  // put your setup code here, to run once:
+  // Open serial communications and wait for port to open:
+  Serial.begin(9600);
+  Serial.println("\tDCC Snipper\n\tInitialization process started.");
+  if (!setupSD_Card())
+  {
+   Serial.println("\n\tEntering infinite loop");
+   while (1);
+  } 
+  Serial.println("Module initialized");
  }
 
 void loop()
  {
-  // put your main code here, to run repeatedly:
+
  }

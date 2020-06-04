@@ -8,4 +8,10 @@
  * 
  */
 
+#ifndef __MAIN_H__
+#define __MAIN_H__ 1
+
 #include <Arduino.h>
+#include "SD_Manager.h"
+
+#endif
