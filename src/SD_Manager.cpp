@@ -49,20 +49,12 @@ bool setupSD_Card(void)
     if (!sdVolume.init(sdCard)) Serial.println("Could not find FAT16/FAT32 partition.\nMake sure you've formatted the card");
     else
      {
-      Serial.print("\nVolume type is FAT");
+      Serial.print("Volume type is FAT");
       Serial.println(sdVolume.fatType(), DEC);
-      Serial.println();
-      
       uiVolumesize = sdVolume.blocksPerCluster();                                // clusters are collections of blocks
       uiVolumesize *= sdVolume.clusterCount();                                   // we'll have a lot of clusters
       uiVolumesize *= 512;                                                       // SD card blocks are always 512 bytes
       Serial.print("Volume size (bytes): ");
-      Serial.println(uiVolumesize);
-      Serial.print("Volume size (Kbytes): ");
-      uiVolumesize /= 1024;
-      Serial.println(uiVolumesize);
-      Serial.print("Volume size (Mbytes): ");
-      uiVolumesize /= 1024;
       Serial.println(uiVolumesize);
       Serial.println("\nFiles found on the card (name, date and size in bytes): ");
       sdRoot.openRoot(sdVolume);
