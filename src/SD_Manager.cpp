@@ -10,23 +10,16 @@
 
 #include "SD_Manager.h"
 
-// set up variables using the SD utility library functions:
 Sd2Card        sdCard;
 SdVolume       sdVolume;
 SdFile         sdRoot;
 uint32_t       uiVolumesize;
 
-
-// change this to match your SD shield or module;
-// Arduino Ethernet shield: pin 4
-// Adafruit SD shields and modules: pin 10
-// Sparkfun SD shield: pin 8
-
 bool setupSD_Card(void)
  {
   bool    bStatus   = false;
 
-  Serial.print("\nInitializing SD card...");
+  Serial.print("\nInitializing the SD card...");
   pinMode(SS, OUTPUT);                                                         // Set the SS pin for the Card reader
   if (!sdCard.init(SPI_HALF_SPEED, SD_SS_PIN)) Serial.println(" Failed. Check hardware\n");
   else
