@@ -34,16 +34,16 @@ bool setupTFT(uint8_t uiOrientation)
 /**
  * @brief Draw the frame of the main screen
  */
-void drawFrame(void)
+void drawFrame(char *pcFileName)
  {
   cleanScreen(TFT_BLACK, TFT_YELLOW);
   writeText(150, 13, TFT_GREEN, TFT_BLACK, 3, (char *)"Flux DCC++");
   TFT.drawFastHLine(3,  45, SCREEN_W - 6, TFT_YELLOW);
-  writeText(10, 57, TFT_WHITE, TFT_BLACK, 3, (char *)">");
+  writeText(10, 57, TFT_WHITE, TFT_BLACK, 3, (char *)"> ");
   TFT.drawFastHLine(3,  90, SCREEN_W - 6, TFT_YELLOW);
-  writeText(10, 102, TFT_GREENYELLOW, TFT_BLACK, 3, (char *)"Fichier : ");
+  writeText(10, 102, TFT_GREENYELLOW, TFT_BLACK, 3, (char *)strcat((char *)"Fichier : ", pcFileName));
   TFT.drawFastHLine(3, 135, SCREEN_W - 6, TFT_YELLOW);
-  butCmd[0].drawButton(true);
+  butCmd[0].drawButton(false);
   butCmd[1].drawButton(false);
   butCmd[2].drawButton(false);
  }
@@ -123,7 +123,7 @@ void cleanScreen(uint16_t uiBk_Color, uint16_t uiFr_Color)
  */
 void splachScreen(char *pcVersion)
  {
-  char      cMessage [128];
+  char      cMessage [32];
   uint16_t  uiX_Pos;
 
   cleanScreen(TFT_BLACK, TFT_YELLOW);
@@ -147,7 +147,6 @@ void splachScreen(char *pcVersion)
 uint8_t getScreenAction(void)
  {
   uint8_t        uiBut = 0xFF;
-  static uint8_t uiLastAction;
 
   if (isPressed())
    {

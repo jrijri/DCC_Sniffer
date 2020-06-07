@@ -14,6 +14,7 @@
 #include <Arduino.h>
 #include "SD_Manager.h"
 #include "TFT_Manager.h"
+#include "DCC_Manager.h"
 
 #define  APP_VERSION "1.0.0"
 

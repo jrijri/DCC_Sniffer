@@ -18,6 +18,10 @@
 #define SD_SS_PIN           10
 
 
-bool setupSD_Card(void);
+bool      setupSD_Card(void);
+char     *createNextFile(void);
+void      appendToFile(char * pcMessage);
+void      closeFile(void);
+bool      isFileOpen(void);
 
 #endif

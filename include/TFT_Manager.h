@@ -57,7 +57,7 @@ bool      setupTFT(uint8_t uiOrientation);
 void      writeText(int16_t iX, int16_t iY, uint16_t iFrColor, uint16_t iBkColor, uint8_t iSize,/* const GFXfont *fFont,*/ char *pcText);
 void      cleanScreen(uint16_t uiBk_Color, uint16_t uiFr_Color);
 void      splachScreen(char *pcVersion);
-void      drawFrame(void);
+void      drawFrame(char *pcFileName);
 uint8_t   getScreenAction(void);
 
 

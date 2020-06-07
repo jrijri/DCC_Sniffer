@@ -50,9 +50,8 @@ TSPoint_kbv TouchScreen_kbv::getPoint(void)
  {
   int     x, y, z;
   int     samples[NUMSAMPLES];
-  uint8_t i, valid;
+  uint8_t i;
 
-  valid = 1;
   pinMode(_yp, INPUT);
   pinMode(_ym, INPUT);
   digitalWrite(_yp, LOW);
