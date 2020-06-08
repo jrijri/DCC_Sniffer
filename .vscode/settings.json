@@ -1,0 +1,12 @@
+{
+  "remote.SSH.showLoginTerminal": true,
+  "sshfs.configs": [
+    {
+      "host": "192.168.1.51",
+      "name": "RPi_1",
+      "password": "raspberry",
+      "root": "/home/pi/C_projects",
+      "username": "pi"
+    }
+  ]
+}
