@@ -1,0 +1,1 @@
+Commit 1: 2020-06-11 - TFT and SD working. ToDo integrate DCC decoder
