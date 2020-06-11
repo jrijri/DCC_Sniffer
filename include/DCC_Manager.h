@@ -13,9 +13,23 @@
 
 #include "NmraDcc.h"
 
-#define DCC_INPUT_PIN               2                                          // Arduino pin for the DCC signal input
+#define   DCC_INPUT_PIN             2                                          // Arduino pin for the DCC signal input
 
+#define   MAX_ARGS                  5                                          // Maximum arguments in the DCC message
 
-bool setupDCC(void);
+class DCC_Message
+ {
+  public:
+    DCC_Message();
+    void     pulling(void);
+    uint8_t  getCommandMnemo(void);
+    uint8_t  getArgument(uint8_t uiIndex);
+
+  private:
+    uint8_t muiCommand;
+    uint8_t muiArg[MAX_ARGS];
+ };
+
+bool  setupDCC(void);
 
 #endif

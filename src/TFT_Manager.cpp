@@ -10,157 +10,105 @@
 
 #include "TFT_Manager.h"
 
-UTFT       TFT(HX8347I,38,39,40,41);
-URTouch    TS(6, 5, 4, 3, 2);
-TS_Point   TPoint;
-TFT_Button butCmd[3];
-
-extern uint8_t SmallFont[];
-extern uint8_t BigFont[];
-
-TS_Point::TS_Point()
- {
-  muiX        = 0;
-  muiY        = 0;
-  muiPressure = 0;
- }
-
-/*!
- *  @brief  TS_Point constructor
- *  @param  x0
- *          Initial x
- *  @param  y0
- *          Initial y
- *  @param  z0
- *          Initial z
+/**
+ * Global variables
  */
-TS_Point::TS_Point(uint16_t uiX, uint16_t uiY, uint16_t uiPressure)
- {
-  muiX        = uiX;
-  muiY        = uiY;
-  muiPressure = uiPressure;
- }
+UTFT          TFT(HX8347I,38,39,40,41);                                        // Set the parameters for the TFT connection
+URTouch       TS(6, 5, 4, 3, 2);                                               // Parameters for the TouchScreen
 
-/*!
- *  @brief  Equality operator for TS_Point
- *  @return True if points are equal
+TS_Point      TPoint;                                                          // TouchScreen point
+TFT_Button    butCmd[3];                                                       // Buttons displayed on the TouchScreen
+unsigned long ulLastCmdStamp;                                                  // Time stamp of the last button press
+char          cMessages[6][32];                                                // List of messages displayed (DCC commands)
+
+
+
+/**
+ * @brief Initialize the TFT display
+ *        Set the TFT orientation
+ *        Set the TouchScreen precision
+ *        Set the font and the buttons
+ *        Reset the action stamp variable
+ * 
+ * @return bStatus as boolean - always true
  */
-bool TS_Point::operator==(TS_Point tsP1)
- {
-  return ((tsP1.muiX == muiX) && (tsP1.muiY == muiY) && (tsP1.muiPressure == muiPressure));
- }
-
-/*!
- *  @brief  Non-equality operator for TS_Point
- *  @return True if points are not equal
- */
-bool TS_Point::operator!=(TS_Point tsP1)
- {
-  return ((tsP1.muiX != muiX) || (tsP1.muiY != muiY) || (tsP1.muiPressure != muiPressure));
- }
-
-TFT_Button::TFT_Button()
- {
-  muiX          = 0;
-  muiY          = 0;
-  muiWidth      = 0;
-  muiHeight     = 0;
-  muiOutlineCol = 0;
-  muiFillCol    = 0;
-  muiTextCol    = 0;
-  muiTextSize   = 0;
-  *mcLabel      = '\0';
- }
-
-void TFT_Button::press(boolean bStatus)
- {
-  bLastState = bCurrState;
-  bCurrState = bStatus;
- }
-
-bool TFT_Button::justPressed(void)  { return (bCurrState && !bLastState); }
-bool TFT_Button::justReleased(void) { return (!bCurrState && bLastState); }
-bool TFT_Button::isPressed(void)    { return bCurrState; }
-bool TFT_Button::contains(uint16_t uiX, uint16_t uiY)
- {
-  return ((uiX >= muiX) && (uiX < (muiX + muiWidth)) && (uiY >= muiY) && (uiY < (muiY + muiHeight)));
- }
-
-void TFT_Button::initButton(uint16_t uiX,          uint16_t uiY,       uint16_t uiWidth,   uint16_t uiHeight, 
-                            uint16_t uiOutlineCol, uint16_t uiFillCol, uint16_t uiTextCol, 
-                            char *cLabel,          uint8_t uiTextSize)
- {
-  muiX          = uiX;
-  muiY          = uiY;
-  muiWidth      = uiWidth;
-  muiHeight     = uiHeight;
-  muiOutlineCol = uiOutlineCol;
-  muiFillCol    = uiFillCol;
-  muiTextCol    = uiTextCol;
-  muiTextSize   = uiTextSize;
-  strncpy(mcLabel, cLabel, MAX_STRING_LEN - 1);
- }
-
-void TFT_Button::drawButton(boolean bInverted)
- {
-  uint16_t uiFillCol,
-           uiOutLineCol,
-           uiTextCol;
-
-  if (!bInverted)
-   {
-    uiFillCol    = muiFillCol;
-    uiOutLineCol = muiOutlineCol;
-    uiTextCol    = muiTextCol;
-   }
-  else
-   {
-    uiFillCol    = muiTextCol;
-    uiOutLineCol = muiOutlineCol;
-    uiTextCol    = muiFillCol;
-   }
-//  uiRadius = min(muiWidth, muiHeight) / 4;                                     // Corner radius
-  TFT.setColor(uiFillCol);
-  TFT.fillRoundRect(muiX, muiY, muiWidth + muiX, muiHeight + muiY);
-  TFT.setColor(uiOutLineCol);
-  TFT.drawRoundRect(muiX, muiY, muiWidth + muiX, muiHeight + muiY);
-  TFT.setBackColor(uiFillCol);
-  TFT.setColor(uiTextCol);
-  TFT.print(mcLabel, muiX + (muiWidth  / 2) - (strlen(mcLabel) * 3 * muiTextSize),
-                     muiY + (muiHeight / 2) - (4 * muiTextSize));
- }
-
 bool setupTFT(uint8_t uiOrientation)
  {
   bool      bStatus   = true;
 
   Serial.print("\nInitializing the TFT ...\n");
+  ulLastCmdStamp = millis();                                                   // Set the time counter
   TFT.InitLCD(uiOrientation);
   TS.InitTouch();
   TS.setPrecision(PREC_MEDIUM);
   TFT.setFont(SmallFont);
-  butCmd[0].initButton( 20, 125, 60, 40, TFT_RED, TFT_MAROON, TFT_RED, (char *)"||", 1);
-  butCmd[1].initButton(130, 125, 60, 40, TFT_RED, TFT_MAROON, TFT_RED, (char *)"|>", 1);
-  butCmd[2].initButton(240, 125, 60, 40, TFT_RED, TFT_MAROON, TFT_RED, (char *)"[]", 1);
+  butCmd[0].initButton( 20, 180, 60, 40, VGA_RED, VGA_MAROON, VGA_RED, PAUSE_LABEL, 0, &TFT);
+  butCmd[1].initButton(130, 180, 60, 40, VGA_RED, VGA_MAROON, VGA_RED, START_LABEL, 1, &TFT);
+  butCmd[2].initButton(240, 180, 60, 40, VGA_RED, VGA_MAROON, VGA_RED, STOP_LABEL, 2, &TFT);
+  Serial.println("Done");
   return(bStatus);
+ }
+
+/**
+ * @brief display the file name in the frame
+ * 
+ * @param pcFileName as char * is the file name string
+ * @param bIsRecording as bool is the recording status
+ */
+void drawFileName(char *pcFileName, bool bIsRecording)
+ {
+  char  cPath[32];
+
+  sprintf(cPath, "Fichier : %s", pcFileName);
+  TFT.setFont(SmallFont);
+  writeText(10, 37, TFT_GREENYELLOW, VGA_BLACK, (char *)cPath);
+  if(bIsRecording) TFT.setColor(VGA_RED);
+  else             TFT.setColor(VGA_BLACK);
+  TFT.fillCircle(300, 43, 6);                                                  // Add a RED disk when recording
  }
 
 /**
  * @brief Draw the frame of the main screen
  */
-void drawFrame(char *pcFileName)
+void drawFrame(char *pcFileName, bool bIsRecording)
  {
-  cleanScreen(TFT_BLACK, TFT_YELLOW);
-  TFT.setColor(TFT_YELLOW);
+  char  pcNum[4];
+
+  cleanScreen(VGA_BLACK, VGA_YELLOW);
+  TFT.setColor(VGA_YELLOW);
   TFT.drawHLine(3,  35, TFT.getDisplayXSize() - 6);
-  TFT.drawHLine(3,  70, TFT.getDisplayXSize() - 6);
-  TFT.drawHLine(3, 105, TFT.getDisplayXSize() - 6);
-  writeText(100, 13, TFT_GREEN, TFT_BLACK, (char *)"Flux DCC++");
-  writeText(10, 47, TFT_WHITE, TFT_BLACK, (char *)"> ");
-  writeText(10, 82, TFT_GREENYELLOW, TFT_BLACK, (char *)strcat((char *)"Fichier : ", pcFileName));
+  TFT.drawHLine(3,  51, TFT.getDisplayXSize() - 6);
+  TFT.drawHLine(3, 160, TFT.getDisplayXSize() - 6);
+  TFT.setFont(BigFont);
+  writeText(CENTER,  8, TFT_GREENYELLOW, VGA_BLACK, (char *)"Flux DCC++");
+  TFT.setFont(SmallFont);
+  drawFileName(pcFileName, bIsRecording);
+  writeText(5, 145, VGA_WHITE, VGA_BLACK, (char *)" > ");
+  for( uint8_t uiInd = 1; uiInd < 6; uiInd++)
+   {
+    sprintf(pcNum, "-%1u:", uiInd);
+    writeText(5, 145 - (uiInd * 16), TFT_LIGHTGREY, VGA_BLACK, pcNum);
+   }
   butCmd[0].drawButton(false);
   butCmd[1].drawButton(false);
   butCmd[2].drawButton(false);
+ }
+
+/**
+ * @brief Push the old commands up and
+ *        Add the new one at the bottom
+ * 
+ * @param pcMessage as char * is the new command string
+ */
+void pushCmdList(char *pcMessage)
+ {
+  for (uint8_t uiInd = 5; uiInd > 0; uiInd--)                                  // Move the old messages up
+   {
+    strcpy(cMessages[uiInd], cMessages[uiInd - 1]);
+    writeText(30, 145 - (uiInd * 16), TFT_LIGHTGREY, VGA_BLACK, cMessages[uiInd]);
+   }
+  strncpy(cMessages[0], pcMessage, 30);
+  writeText(30, 145, VGA_WHITE, VGA_BLACK, pcMessage);                         // Display the new message
  }
 
 /**
@@ -169,13 +117,10 @@ void drawFrame(char *pcFileName)
  * @param iY is the Y coordinate of the left/lower corner
  * @param iFrColor is the message color
  * @param iBkColor is the background color, important to clean the previous message
- * @param iSize is the text size, for 1 the char is 6x8 pixels, then use multiples
- * NOT SET @param fFont is a pointer to the font to be used, NULL for the default one
  * @param pcText is a pointer to the text set as (char *)
  */
-void writeText(int16_t iX, int16_t iY, uint16_t iFrColor, uint16_t iBkColor, /*uint8_t iSize, const GFXfont *fFont,*/ char *pcText)
+void writeText(int16_t iX, int16_t iY, uint16_t iFrColor, uint16_t iBkColor, char *pcText)
  {
-  //  TFT.setFont(fFont);
   TFT.setBackColor(iBkColor);
   TFT.setColor(iFrColor);
   TFT.print(pcText, iX, iY);
@@ -193,7 +138,7 @@ bool isPressed(void)
    {
     TS.read();
     bState = true;
-    TPoint =  TS_Point(TS.getX(), TS.getY(), 0);
+    TPoint =  TS_Point(SCREEN_W - TS.getX(), TS.getY(), 0);
    }
   return bState;
  }
@@ -221,28 +166,20 @@ void cleanScreen(uint16_t uiBk_Color, uint16_t uiFr_Color)
 void splachScreen(char *pcVersion)
  {
   char      cMessage [32];
-  uint16_t  uiX_Pos;
 
-  cleanScreen(TFT_BLACK, TFT_YELLOW);
+  cleanScreen(VGA_BLACK, VGA_YELLOW);
   sprintf(cMessage, "Version : %s", pcVersion);
-  uiX_Pos = (SCREEN_W - (strlen(cMessage) * 16)) / 2;
-  Serial.println(uiX_Pos);
   TFT.setFont(BigFont);
-  writeText(72,  50, TFT_RED, TFT_BLACK, (char *)"DCC Snipper");
-  writeText(uiX_Pos, 110, TFT_WHITE, TFT_BLACK, cMessage);
+  writeText(CENTER,  50, VGA_RED, VGA_BLACK, (char *)"DCC Snipper");
+  writeText(CENTER, 110, VGA_WHITE, VGA_BLACK, cMessage);
   TFT.setFont(SmallFont);
-  writeText(104, 150, TFT_RED, TFT_BLACK, (char *)"Initialisation");
+  writeText(CENTER, 150, VGA_RED, VGA_BLACK, (char *)"Initialisation");
  }
 
 /**
  * @brief Manage the buttons' actions on the main screen
- * @return the pressed button ID [0..N] as uint8_t
  * 
- * Buttons settings:
- *    - 0x00 = Pause recording
- *    - 0x01 = Start recording
- *    - 0x02 = Stop recording
- *    - 0xFF   Otherwise
+ * @return the pressed button action as uint8_t
  */
 uint8_t getScreenAction(void)
  {
@@ -250,19 +187,43 @@ uint8_t getScreenAction(void)
 
   if (isPressed())
    {
-    for (uint8_t uiInd = 0; uiInd < 3; uiInd++)
-      {
-       butCmd[uiInd].press(butCmd[uiInd].contains(TPoint.muiX, TPoint.muiY));
-       if (butCmd[uiInd].justPressed())  
-        {
-         butCmd[uiInd].drawButton(true);
-         uiBut = uiInd;
-        }
-       if (butCmd[uiInd].justReleased())
-        {
-         butCmd[uiInd].drawButton();
-        }
-      }
+    if ((millis() - ulLastCmdStamp) > BOUNCING_DELAY)                          // Avoid bouncing effect when pressing TFT
+     {
+      ulLastCmdStamp = millis();
+      for (uint8_t uiInd = 0; uiInd < 3; uiInd++)
+       {
+        butCmd[uiInd].press(butCmd[uiInd].contains(TPoint));
+        if (butCmd[uiInd].justPressed())  
+         {
+          butCmd[uiInd].drawButton(true);
+          uiBut = butCmd[uiInd].getAction();
+         }
+        if (butCmd[uiInd].justReleased())
+         {
+          butCmd[uiInd].drawButton();
+         }
+       }
+     }
    }
   return(uiBut);
+ }
+
+void checkAction(bool bStatus)
+ {
+  if (!bStatus)
+   {
+    TFT.setFont(SmallFont);
+    writeText(10, 37, VGA_RED, VGA_BLACK, (char *)"!! ERREUR CARTE SD - BLOQUAGE !!");
+    while(1);
+   }
+ }
+
+void affectButtonAction(uint8_t uiNum, uint8_t uiAction, char *pcLabel)
+ {
+  if ((uiNum >= 0) && (uiNum < 3))
+   {
+    butCmd[uiNum].setAction(uiAction);
+    butCmd[uiNum].changeLabel(pcLabel);
+    butCmd[uiNum].drawButton(false);
+   }
  }

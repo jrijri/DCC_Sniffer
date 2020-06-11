@@ -18,4 +18,6 @@
 
 #define  APP_VERSION "1.0.0"
 
+void setButtons(void);
+
 #endif
