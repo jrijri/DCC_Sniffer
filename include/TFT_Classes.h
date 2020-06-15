@@ -12,7 +12,7 @@
 #define __TFT_CLASSES_H__ 1
 
 #include <Arduino.h>
-#include "./../UTFT/UTFT.h"                                                    // Link to Rinky-Dink Electronics version
+#include "./UTFT.h"                                                            // Link to Rinky-Dink Electronics version
 #include "./../URTouch/URTouch.h"
 
 #define   MAX_LABEL_LEN        10                                              // Button's label max length

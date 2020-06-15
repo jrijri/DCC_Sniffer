@@ -15,7 +15,7 @@
 #include <SPI.h>
 #include <Wire.h>
 #include "TFT_Classes.h"
-#include "./../UTFT/UTFT.h"                                                    // Link to Rinky-Dink Electronics version
+#include <./../UTFT-master/UTFT.h>                                             // Link to Rinky-Dink Electronics version
 #include "./../URTouch/URTouch.h"
 
 extern UTFT TFT;
