@@ -10,7 +10,7 @@
 #include "main.h"
 
 SD_Record   mySD;
-DCC_Message myDCC;
+DCC_Packet  myDCC;
 
 /**
  * @brief Arduino setup function

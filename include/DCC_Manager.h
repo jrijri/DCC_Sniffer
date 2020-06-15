@@ -6,6 +6,8 @@
  * 
  * Author: Jérôme Rioublanc
  * 
+ * Based on article: https://locoduino.org/spip.php?article39
+ * 
  */
 
 #ifndef __DCC_MANANGER_H__
@@ -15,12 +17,12 @@
 
 #define   DCC_INPUT_PIN             2                                          // Arduino pin for the DCC signal input
 
-#define   MAX_ARGS                  5                                          // Maximum arguments in the DCC message
+#define   MAX_ARGS                  6                                          // Maximum arguments in the DCC message
 
-class DCC_Message
+class DCC_Packet
  {
   public:
-    DCC_Message();
+    DCC_Packet();
     void     pulling(void);
     uint8_t  getCommandMnemo(void);
     uint8_t  getArgument(uint8_t uiIndex);
